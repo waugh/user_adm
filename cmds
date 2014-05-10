@@ -1,0 +1,47 @@
+# Some of these commands have to be run in different contexts from each other
+# (e. g., original user vs. new user).  Some are interactive (e. g., adduser).
+# There might be circumstances when some are inappropriate to run.  So,
+# this file is for copying and pasting commands as appropriate; it is not
+# a shell script.
+
+newuser=rbenv
+bigdisk=../../mnt/pers
+
+sudo adduser $newuser
+mkdir $bigdisk/not_worth_backing_up/$newuser
+sudo chown $newuser $bigdisk/not_worth_backing_up/$newuser
+sudo chgrp $newuser $bigdisk/not_worth_backing_up/$newuser
+
+su -l $newuser
+
+bigdisk=../../mnt/pers # Copied from above.
+
+cp .bashrc orig.bashrc
+ln -s $bigdisk/not_worth_backing_up/$LOGNAME n
+cd n
+mkdir projects
+cd projects
+git clone https://github.com/sstephenson/rbenv.git
+ln -s n/projects/rbenv $HOME/.rbenv
+cd rbenv
+test -d plugins || mkdir plugins
+cd plugins
+git clone https://github.com/sstephenson/ruby-build.git
+cd
+
+# Edit .bashrc per the instructions in
+# https://github.com/sstephenson/rbenv#basic-github-checkout
+
+. orig.bashrc
+origpath="${origpath-$PATH}"
+export PATH=$HOME/.rbenv/bin:$origpath
+eval "$(rbenv init -)"
+
+. .bashrc
+
+rbenv install 2.0.0-p481 # Builds.
+rbenv install 2.0.0-p451 # Doesn't build; see
+  # https://github.com/sstephenson/ruby-build/issues/526
+rbenv install 2.0.0-p353 # Doesn't build.
+rbenv install 1.9.3-p125 # Builds!
+
